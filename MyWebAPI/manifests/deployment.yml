@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: mpdlearners 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mpdlearners
+  template:
+    metadata:
+      labels:
+        app: mpdlearners 
+    spec:
+      containers:
+        - name: mpdlearners 
+          image: webapicontregistry.azurecr.io/mpdlearners
+          ports:
+          - containerPort: 80
