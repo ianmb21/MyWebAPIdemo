@@ -23,7 +23,7 @@ namespace MyWebAPI.Models
 
         public int age { get; set; }
 
-        [Column(TypeName = "nvarchar(3)")]
+        [Column(TypeName = "nvarchar(50)")]
         public string position { get; set; }
 
         [Column(TypeName = "nvarchar(100)")]

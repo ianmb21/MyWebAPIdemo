@@ -9,14 +9,36 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 using System.Text.Json.Serialization;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.ConfigureAppConfiguration((context, config) =>
+{
+    var builtConfig = config.Build();
+
+    var vaultUrl = builtConfig["KeyVaultsConfig:VaultURL"];
+    var tenantId = builtConfig["KeyVaultsConfig:TenantId"];
+    var clientId = builtConfig["KeyVaultsConfig:ClientId"];
+    var clientSecret = builtConfig["KeyVaultsConfig:ClientSecret"];
+
+    var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+
+    var client = new SecretClient(new Uri(vaultUrl), credential);
+
+    config.AddAzureKeyVault(client, new AzureKeyVaultConfigurationOptions());
+});
 
 // Add services to the container.
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<PasswordService>();
+
+builder.Services.AddDbContext<EmployeeDBContext>(options =>
+options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection")));
 
 builder.Services.AddControllers();
 builder.Services.AddControllers().AddJsonOptions(x =>
@@ -65,9 +87,6 @@ builder.Services.AddSwaggerGen(options =>
     options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
 
-builder.Services.AddDbContext<EmployeeDBContext>(options =>
-options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection")));
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -79,6 +98,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthorization();
 app.UseAuthentication();
+app.UseCors(allowedOrigins);
 app.MapControllers();
 
 app.Run();

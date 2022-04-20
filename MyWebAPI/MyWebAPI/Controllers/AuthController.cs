@@ -55,7 +55,7 @@ namespace MyWebAPI.Controllers
             return Created("success", await UserRepository.Register(user));
         }
 
-        [HttpPost("login")]
+        [HttpPost("login/{Username}/{Password}")]
         public async Task<IActionResult> Login(string Username, string Password)
         {
             var user = await UserRepository.GetByUsername(Username);
